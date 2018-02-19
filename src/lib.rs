@@ -33,8 +33,7 @@ pub fn take<T, F>(mut_ref: &mut T, closure: F)
     use std::ptr;
 
     unsafe {
-        let old_t = ptr::read(mut_ref);
-        let new_t = panic::catch_unwind(panic::AssertUnwindSafe(|| closure(old_t)))
+        let new_t = panic::catch_unwind(panic::AssertUnwindSafe(|| closure( ptr::read(mut_ref) )))
             .unwrap_or_else(|_| ::std::process::abort());
         ptr::write(mut_ref, new_t);
     }
@@ -82,8 +81,7 @@ pub fn take_or_recover<T, F, R>(mut_ref: &mut T, recover: R, closure: F)
   where F: FnOnce(T) -> T, R: FnOnce() -> T {
     use std::ptr;
     unsafe {
-        let old_t = ptr::read(mut_ref);
-        let new_t = panic::catch_unwind(panic::AssertUnwindSafe(|| closure(old_t)));
+        let new_t = panic::catch_unwind(panic::AssertUnwindSafe(|| closure( ptr::read(mut_ref) )));
         match new_t {
             Err(err) => {
                 let r = panic::catch_unwind(panic::AssertUnwindSafe(|| recover()))
@@ -145,6 +143,3 @@ fn it_works_recover_panic() {
     assert!(res.is_err());
     assert_eq!(&foo, &Foo::C);
 }
-
-
-
